@@ -26,7 +26,7 @@ s1.flatMap(s => s)
 
 def flatMap1(s: List[List[Int]], f: List[Int] => List[Int]) = {
   s.foldLeft(List.empty[Int]) {
-    (a, b) => a ++ b
+    (a, b) => a ++ f(b)
   }
 }
 
