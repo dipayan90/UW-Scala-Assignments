@@ -16,7 +16,7 @@ val sum1 = s.foldLeft(0)(_ + _)
 
 val rev = s.foldLeft(List.empty[Int])((s, i) => i +: s)
 
-// 1 :+ (2:+ (3:+ () ))
+// 3 :+ (2:+ (1:+ () ))
 
 val fwd = s.foldRight(List.empty[Int])((i, s) => i +: i +: s)
 
