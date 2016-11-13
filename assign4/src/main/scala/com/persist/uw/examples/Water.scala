@@ -1,13 +1,106 @@
 package com.persist.uw.examples
 
+import scala.collection.breakOut
+import scala.collection.mutable.{ListBuffer, Queue}
+
 case class State(contains: List[Int]) {
   override def toString = contains.mkString("[", ",", "]")
 }
 
 case class Water(end: State, sizes: State) {
+
   type Path = List[State]
 
-  def solve(start: State): Option[Path] = ???
+  case class Container(name: String,capacity: Int)
+
+  type StateStatus = Map[Container,Int]
+
+  type Move = (Container,Container)
+
+  def solve(start: State): Option[Path] = {
+    val parentMap = BFS(start)
+    getPath(parentMap)
+  }
+
+  def getPath(parentMap : Map[State,State]) : Option[Path] = {
+    // If element doesn't exist, we will not have a path
+    if(!parentMap.contains(end)){
+      return None
+    }
+    var current = parentMap.get(end).get
+    val result = new ListBuffer[State]
+    while(current != null){
+      result += current
+      current = parentMap.get(current).get
+    }
+    Some(result.toList)
+  }
+
+  def BFS(start: State) : Map[State,State] = {
+    var alreadyVisited = Set.empty[State]
+    var toVisit = Queue.empty[State]
+    var parentMap = Map.empty[State,State]
+
+    toVisit += start
+    parentMap += start -> null
+
+    while(toVisit.nonEmpty){
+      val current = toVisit.dequeue()
+      val currentStatus: Map[Container,Int] = generateStateStatus(current)
+      alreadyVisited += current
+      if(current.equals(end)){
+        // Once we get the solution then return
+        return parentMap
+      }else{
+        val moves: List[Move] = possibleMoves(currentStatus)
+        val childStateStatus : List[StateStatus] =  moves.map(m => applyMove(currentStatus,m))
+        val children: List[State] =  childStateStatus.map(s => getStateFromStatus(s))
+        children.map(c => if(!alreadyVisited.contains(c)) {  parentMap += c -> current; toVisit += c})
+      }
+    }
+    parentMap
+  }
+
+  def generateStateStatus(currentState: State): Map[Container,Int] ={
+    val containers : List[Container] = sizes.contains.map(s => new Container(s.toString+math.random.toString,s))
+    val status: Map[Container,Int] =  (containers zip currentState.contains)(breakOut)
+    status
+  }
+
+  def getStateFromStatus(stateStatus: StateStatus) : State = {
+    val sortedMap : Seq[(Container, Int)] = stateStatus.toSeq.sortBy(_._1.capacity)
+    val res: List[Int] =  sortedMap.map(_._2).toList
+    State(res)
+  }
+
+  def possibleMoves(state: StateStatus): List[Move] = {
+    val containers: List[Container] = state.keys.toList
+    for {
+      s <- containers
+      t <- containers
+    //1. Can't go to same container
+    //2. from cannot be 0
+    //3. to cannot be full
+      if (s != t && state(s) != 0 && state(t) != t.capacity)
+    } yield (s, t)
+  }
+
+  def applyMove(state: StateStatus, move: Move): StateStatus = {
+    val from = move._1
+    val to = move._2
+    // amount to pour is to - (if anything is already in to )
+    val remainingCapacity = to.capacity - state(to)
+    val transfer = math.min(state(from), remainingCapacity)
+    // if there is nothing to be transfered return same map
+    if (transfer == 0) state
+      // from becomes state of from - amount to transfer
+      // to becomes state of to + amount to transfer
+    else state ++ List(from -> (state(from) - transfer), to -> (state(to) + transfer))
+  }
+
+
+
+
 }
 
 object WaterTest {
