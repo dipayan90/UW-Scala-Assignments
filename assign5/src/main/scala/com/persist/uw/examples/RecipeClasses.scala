@@ -14,7 +14,6 @@ object RecipeClasses {
     override def toString: String = f"$D${cents / 100}.${cents % 100}%02d"
   }
 
-
   trait Ingredient {
     val name: String
     val unit: String
@@ -28,25 +27,31 @@ object RecipeClasses {
 
   // Add the additional classes needed here
 
-  case class Action(name: String,ingredientList: List[Ingredient]) {
-    val home = new House
+  case class Action(name: String, ingredientList: List[Ingredient],time: Int = 0)
 
-  }
+  case class House() {
 
-   class House(){
+    var ingredientsAtHome = List.empty[Ingredient]
 
-    val ingredientsAtHome = List.empty[Ingredient]
-
-    def getIngredients: List[Ingredient] =  ingredientsAtHome
+    def getIngredients: List[Ingredient] = ingredientsAtHome
 
     def buy(ingredient: Ingredient) = {
-       ingredient :: ingredientsAtHome
+      ingredient :: ingredientsAtHome
     }
 
-     def checkAvailability(ingredient: Ingredient) : Int = {
-       ingredientsAtHome.filter(e => e.equals(ingredient)).map(i => i.pack).sum
-     }
+    def checkAvailability(ingredient: Ingredient): Int = {
+      ingredientsAtHome.filter(e => e.name.equals(ingredient.name)).map(i => i.pack).sum
+    }
 
   }
+
+  trait Recipe {
+    val ingredients: List[Ingredient]
+    val actions: List[Action]
+  }
+
+  case class ScrambledEggs(ingredients: List[Ingredient],actions: List[Action]) extends Recipe
+  case class BLT(ingredients: List[Ingredient],actions: List[Action]) extends Recipe
+  case class Quiche(ingredients: List[Ingredient],actions: List[Action]) extends Recipe
 
 }
