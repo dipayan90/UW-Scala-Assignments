@@ -49,6 +49,7 @@ case class RecipeExample() {
       case (k,v) if k.equals(bacon.name) =>  shoppingList += Cold(k,bacon.unit,(calculatePacks(v,bacon.pack) * bacon.pack).toInt,Cost((calculatePacks(v,bacon.pack)  * bacon.price.cents).toInt))
       case (k,v) if k.equals(butter.name) =>  shoppingList += Cold(k,butter.unit,(calculatePacks(v,butter.pack) * butter.pack).toInt,Cost((calculatePacks(v,butter.pack)  * butter.price.cents).toInt))
       case (k,v) if k.equals(salt.name) =>  shoppingList += Warm(k,salt.unit,(calculatePacks(v,salt.pack) * salt.pack).toInt,Cost((calculatePacks(v,salt.pack)  * salt.price.cents).toInt))
+      case (k,v) if k.equals(tomatoe.name) => shoppingList += Warm(k,tomatoe.unit,(calculatePacks(v,tomatoe.pack) * tomatoe.pack).toInt,Cost((calculatePacks(v,tomatoe.pack) * tomatoe.price.cents).toInt))
     })
     shoppingList.toList
   }
