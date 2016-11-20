@@ -12,27 +12,38 @@ class TestRecipes extends LambdaTest {
 
   def nop: Unit = ()
 
-  val r = RecipeExample
+  val r = new RecipeExample
   import r._
 
   def act =
     test("What is the cost of the ingredients in a blt?") {
-      //val cost = ???
-      // Feel free to make this a real test by changing second cost
-      // to expected value
-      // assertEq(cost,cost,"blt costs")
-      nyi
+      val cost = 171
+      assertEq(r.recipeCost(r.bLT.ingredients),cost,"blt costs")
     } +
     test("What ingredients do I need to make a quiche?") {
-      nyi
+      val QI1 = Cold("bacon", "strip", 3, Cost(unitCost(bacon) * 3))
+      val QI2 = Cold("swiss cheese", "slice", 2, Cost(unitCost(swiss) * 2))
+      val QI3 = Cold("eggs", "egg", 3, Cost(unitCost(egg) * 3))
+      val QI4 = Cold("cream", "T", 10, DollarsCents(2))
+      val quicheIngredients = List(QI1, QI2, QI3, QI4)
+      assertEq(r.quiche.ingredients,quicheIngredients,"Quiche ingredients")
     } +
     test("What ingredients do I have in my house?") {
-      nyi
+      val noIngredient = List.empty[Ingredient]
+      assertEq(r.house.getIngredients,noIngredient,"ingredients at home")
     } +
     test("Buying everything I need to make scrambled eggs and a quiche") {
       // this is in addition to what is already in house
       // Note: you can only buy whole packages (so round up)
       // Report the cost of groceries purchased
+      val scrambledEggsIngredients = r.scrambledEggs.ingredients
+      val quicheIngredients = r.quiche.ingredients
+      val allIngredients: Map[String,Int] = scrambledEggsIngredients ::: quicheIngredients groupBy (_.name) mapValues (_.map(_.pack).sum)
+      allIngredients.to[List].foreach( _ match {
+        case (k,v) if k.equals(r.pepper.name) => (k,math.ceil(r.pepper.pack % v) * r.pepper.pack,math.ceil(r.pepper.pack % v) * r.pepper.pack * r.pepper.price.cents)
+
+      })
+      System.out.println(allIngredients)
       nyi
     } +
     test("What ingredients do I have in my house?") {

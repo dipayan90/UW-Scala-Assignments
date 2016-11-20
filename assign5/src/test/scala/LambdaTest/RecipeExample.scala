@@ -27,8 +27,12 @@ case class RecipeExample() {
     ingredient.price.cents / ingredient.pack
   }
 
+  def recipeCost(ingredients: List[Ingredient]): Int = {
+    ingredients.map(_.price.cents).sum
+  }
+
   // house object to keep track of home
-  val house = House
+  val house = new House
 
   //Scrambled Eggs
   /*
