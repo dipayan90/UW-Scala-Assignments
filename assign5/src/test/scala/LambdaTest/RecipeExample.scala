@@ -2,6 +2,8 @@ package LambdaTest
 
 import com.persist.uw.examples.RecipeClasses._
 
+import scala.collection.mutable.ListBuffer
+
 case class RecipeExample() {
 
   import com.persist.uw.examples._
@@ -31,6 +33,44 @@ case class RecipeExample() {
     ingredients.map(_.price.cents).sum
   }
 
+  def getWholeCost(allIngredients : List[Ingredient]) : Double ={
+    val shopped = addToCart(allIngredients)
+    shopped.map(_.price.cents).sum
+  }
+
+  def addToCart(allIngredients : List[Ingredient]) : List[Ingredient]= {
+    val ingredientMap : Map[String,Int] = allIngredients groupBy (_.name) mapValues (_.map(_.pack).sum)
+    val shoppingList = new ListBuffer[Ingredient]
+    ingredientMap.to[List].foreach( _ match {
+      case (k,v) if k.equals(pepper.name) => shoppingList += Warm(k,pepper.unit,(calculatePacks(v,pepper.pack) * pepper.pack).toInt,Cost((calculatePacks(v,pepper.pack) * pepper.price.cents).toInt))
+      case (k,v) if k.equals(egg.name) =>  shoppingList += Cold(k,egg.unit,(calculatePacks(v,egg.pack) * egg.pack).toInt,Cost((calculatePacks(v,egg.pack)  * egg.price.cents).toInt))
+      case (k,v) if k.equals(swiss.name) => shoppingList += Cold(k,swiss.unit,(calculatePacks(v,swiss.pack) * swiss.pack).toInt,Cost((calculatePacks(v,swiss.pack)  * swiss.price.cents).toInt))
+      case (k,v) if k.equals(cream.name) =>  shoppingList += Cold(k,cream.unit,(calculatePacks(v,cream.pack) * cream.pack).toInt,Cost((calculatePacks(v,cream.pack)  * cream.price.cents).toInt))
+      case (k,v) if k.equals(bacon.name) =>  shoppingList += Cold(k,bacon.unit,(calculatePacks(v,bacon.pack) * bacon.pack).toInt,Cost((calculatePacks(v,bacon.pack)  * bacon.price.cents).toInt))
+      case (k,v) if k.equals(butter.name) =>  shoppingList += Cold(k,butter.unit,(calculatePacks(v,butter.pack) * butter.pack).toInt,Cost((calculatePacks(v,butter.pack)  * butter.price.cents).toInt))
+      case (k,v) if k.equals(salt.name) =>  shoppingList += Warm(k,salt.unit,(calculatePacks(v,salt.pack) * salt.pack).toInt,Cost((calculatePacks(v,salt.pack)  * salt.price.cents).toInt))
+    })
+    shoppingList.toList
+  }
+
+  def calculatePacks(actual: Int, wholePackQuantity : Int) : Double = {
+    if(actual%wholePackQuantity == 0){
+      actual/wholePackQuantity
+    }else{
+      actual/wholePackQuantity + 1
+    }
+  }
+
+  def canRecipeBeMade(recipe: Recipe,ingredientList : List[Ingredient]): Boolean ={
+    val ingredients : List[Ingredient] = recipe.ingredients
+    for(ing <- ingredients){
+      val matchedIng: List[Ingredient] = ingredientList.filter(_.name.equals(ing.name))
+      if(matchedIng.length == 0){return false}
+      matchedIng.foreach(e => {if(e.pack < ing.pack) {return false} })
+    }
+    true
+  }
+
   // house object to keep track of home
   val house = new House
 
@@ -51,7 +91,7 @@ case class RecipeExample() {
   val SEA2 = Action("cook", SEI4 :: SEA1.ingredientList)
   val SEA3 = Action("rest", SEA2.ingredientList, 1)
   val scrambledEggsActions = List(SEA1, SEA2, SEA3)
-  val scrambledEggs = ScrambledEggs(scrambledEggsIngredients, scrambledEggsActions)
+  val scrambledEggs = ScrambledEggs(ingredients = scrambledEggsIngredients, actions =  scrambledEggsActions)
 
   //Quiche
   /*
@@ -75,7 +115,7 @@ case class RecipeExample() {
   val QA4 = Action("bake", QA3.ingredientList)
   val QA5 = Action("cool", QA4.ingredientList)
   val quicheActions = List(QA1, QA2, QA3, QA4, QA5)
-  val quiche = Quiche(quicheIngredients, quicheActions)
+  val quiche = Quiche(ingredients = quicheIngredients, actions = quicheActions)
 
   //BLT
   /*
@@ -94,6 +134,8 @@ case class RecipeExample() {
   val BLTA2 = Action("cook", List(BLTI2))
   val BLTA3 = Action("combine", List(BLTI3, BLTI4) ::: BLTA1.ingredientList ::: BLTA2.ingredientList)
   val bLTActions = List(BLTA1, BLTA2, BLTA3)
-  val bLT = BLT(bLTIngredients, bLTActions)
+  val bLT = BLT(ingredients = bLTIngredients, actions = bLTActions)
+
+  val cookBook = CookBook(List(scrambledEggs,quiche,bLT))
 
 }

@@ -1,8 +1,10 @@
 package LambdaTest
 
 import com.fortysevendeg.lambdatest._
-import LambdaTest.RecipeExample._
+import _root_.LambdaTest.RecipeExample._
 import com.persist.uw.examples.RecipeClasses._
+
+import scala.collection.mutable.ListBuffer
 
 // Replace each nyi and nop with needed code
 
@@ -38,35 +40,64 @@ class TestRecipes extends LambdaTest {
       // Report the cost of groceries purchased
       val scrambledEggsIngredients = r.scrambledEggs.ingredients
       val quicheIngredients = r.quiche.ingredients
-      val allIngredients: Map[String,Int] = scrambledEggsIngredients ::: quicheIngredients groupBy (_.name) mapValues (_.map(_.pack).sum)
-      allIngredients.to[List].foreach( _ match {
-        case (k,v) if k.equals(r.pepper.name) => (k,math.ceil(r.pepper.pack % v) * r.pepper.pack,math.ceil(r.pepper.pack % v) * r.pepper.pack * r.pepper.price.cents)
-
-      })
-      System.out.println(allIngredients)
-      nyi
+      val allIngredients: List[Ingredient] = scrambledEggsIngredients ::: quicheIngredients
+      r.house.buy(r.addToCart(allIngredients))
+      assertEq(r.getWholeCost(allIngredients),1500,"cost of groceries")
     } +
     test("What ingredients do I have in my house?") {
-      nyi
+      val atHome: List[Ingredient]  = r.house.getIngredients
+      assert(atHome.nonEmpty)
     } +
     label("Preparing a quiche") {
       exec {
         // this should remove the ingredients used from the inventory
-        nop
+        val quicheIngredients : List[Ingredient] = r.quiche.ingredients
+        System.out.println(r.house.ingredientsAtHome)
+        //preparing quiche
+        for(ing <- quicheIngredients){
+          r.house.remove(ing)
+        }
+        System.out.println(r.house.ingredientsAtHome)
       }
     } +
     test("What ingredients do I have in my house?") {
       // After the quiche wa prepared
-      nyi
+      val ingredientsInHouse = r.house.ingredientsAtHome.filter(_.pack!=0)
+      val ingredientnames = ingredientsInHouse.map(_.name)
+      assert(ingredientnames.contains("pepper"))
+      assert(ingredientnames.contains("salt"))
+      assert(ingredientnames.contains("butter"))
+      assert(ingredientnames.contains("eggs"))
     } +
     test("What recipes in my cookbook use bacon?") {
-      nyi
+      val recipes : List[Recipe] = r.cookBook.recipes
+      val filteredList: List[Recipe] =  recipes.filter(_.ingredients.map(_.name).contains("bacon"))
+      val result: List[String] =  filteredList.map(_.name)
+      assert(result.contains("blt"))
+      assert(result.contains("quiche"))
     } +
     test("How do I prepare a blt?") {
-      nyi
+      val blt = r.bLT
+      val actionNames : List[String] = blt.actions.map(_.name)
+      assert(actionNames.contains("slice"))
+      assert(actionNames.contains("cook"))
+      assert(actionNames.contains("combine"))
+
+      val ingredients : List[String] = blt.ingredients.map(_.name)
+      assert(ingredients.contains("tomato"))
+      assert(ingredients.contains("bacon"))
+      assert(ingredients.contains("lettuce"))
     } +
     test("What recipes in my cookbook do I now have enough ingredients to prepare?") {
-      nyi
+      val ingredientsLeft : List[Ingredient] = r.house.ingredientsAtHome.filter(_.pack!=0)
+      val recipes: List[Recipe] = r.cookBook.recipes
+      val result = new ListBuffer[String]
+      for(rec <- recipes){
+        if(r.canRecipeBeMade(rec,ingredientsLeft)){
+         result += rec.name
+        }
+      }
+      assert(result.contains("scrambledEggs"))
     } +
     test("Going shopping") {
       // Set up shopping list with 10 tomatoes and 50 T butter
