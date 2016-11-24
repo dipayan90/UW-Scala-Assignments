@@ -43,44 +43,36 @@ class TestRecipes extends LambdaTest {
         val quicheIngredients = r.quiche.ingredients
         val allIngredients: List[Ingredient] = scrambledEggsIngredients ::: quicheIngredients
         r.house.buy(r.addToCart(allIngredients))
-        assertEq(r.getWholeCost(allIngredients), 1500, "cost of groceries")
+        assertEq( r.getWholeCost(allIngredients), 1500, "cost of groceries")
       } +
       test("What ingredients do I have in my house?") {
         val atHome: List[Ingredient] = r.house.getIngredients
         val ingredientNames = atHome.map(_.name)
         assert(atHome.nonEmpty)
-        assert(ingredientNames.contains("salt"))
-        assert(ingredientNames.contains("pepper"))
-        assert(ingredientNames.contains("eggs"))
-        assert(!ingredientNames.contains("tomatoes"))
+        assertEq(atHome,List(Warm(r.salt.name,r.salt.unit,100,DollarsCents(1)), Cold(r.butter.name,r.butter.unit,12,DollarsCents(2)), Cold(r.bacon.name,r.bacon.unit,30,DollarsCents(4)), Cold(r.cream.name,r.cream.unit,10,DollarsCents(2)),
+        Cold(r.swiss.name,r.swiss.unit,20,DollarsCents(2)), Cold(r.egg.name,r.egg.unit,12,DollarsCents(3)), Warm(r.pepper.name,r.pepper.unit,100,DollarsCents(1))),"in my house")
       } +
       label("Preparing a quiche") {
         exec {
           // this should remove the ingredients used from the inventory
           val quicheIngredients: List[Ingredient] = r.quiche.ingredients
-          System.out.println(r.house.ingredientsAtHome)
           //preparing quiche
           for (ing <- quicheIngredients) {
             r.house.remove(ing)
           }
-          System.out.println(r.house.ingredientsAtHome)
         }
       } +
       test("What ingredients do I have in my house?") {
         // After the quiche wa prepared
         val ingredientsInHouse = r.house.ingredientsAtHome.filter(_.pack != 0)
-        val ingredientnames = ingredientsInHouse.map(_.name)
-        assert(ingredientnames.contains("pepper"))
-        assert(ingredientnames.contains("salt"))
-        assert(ingredientnames.contains("butter"))
-        assert(ingredientnames.contains("eggs"))
+        assertEq(ingredientsInHouse,List(Warm(r.salt.name,r.salt.unit,100,DollarsCents(1)), Cold(r.butter.name,r.butter.unit,12,DollarsCents(2)), Cold(r.bacon.name,r.bacon.unit,27,DollarsCents(4)),
+        Cold(r.swiss.name,r.swiss.unit,18,DollarsCents(2)), Cold(r.egg.name,r.egg.unit,9,DollarsCents(3)), Warm(r.pepper.name,r.pepper.unit,100,DollarsCents(1))),"in my house")
       } +
       test("What recipes in my cookbook use bacon?") {
         val recipes: List[Recipe] = r.cookBook.recipes
         val filteredList: List[Recipe] = recipes.filter(_.ingredients.map(_.name).contains("bacon"))
         val result: List[String] = filteredList.map(_.name)
-        assert(result.contains("blt"))
-        assert(result.contains("quiche"))
+        assertEq(result,List("quiche", "blt"),"use bacon in them")
       } +
       test("How do I prepare a blt?") {
         val blt = r.bLT
@@ -93,6 +85,9 @@ class TestRecipes extends LambdaTest {
         assert(ingredients.contains("tomato"))
         assert(ingredients.contains("bacon"))
         assert(ingredients.contains("lettuce"))
+
+        assertEq(blt.actions,List(Action("slice",List(Warm(r.tomatoe.name,r.tomatoe.unit,1,DollarsCents(1))),0), Action("cook",List(Cold(r.bacon.name,r.bacon.unit,3,DollarsCents(0,39))),0),
+        Action("combine",List(Warm(r.bread.name,r.bread.unit,2,DollarsCents(0,20)), Cold(r.lettuce.name,r.lettuce.unit,2,DollarsCents(0,12)), Warm(r.tomatoe.name,r.tomatoe.unit,1,DollarsCents(1)), Cold(r.bacon.name,r.bacon.unit,3,DollarsCents(0,39))),0)),"are steps for preparing blt")
       } +
       test("What recipes in my cookbook do I now have enough ingredients to prepare?") {
         val ingredientsLeft: List[Ingredient] = r.house.ingredientsAtHome.filter(_.pack != 0)
@@ -103,7 +98,7 @@ class TestRecipes extends LambdaTest {
             result += rec.name
           }
         }
-        assert(result.contains("scrambledEggs"))
+        assertEq(result.toList,List("scrambledEggs"))
       } +
       test("Going shopping") {
         // Set up shopping list with 10 tomatoes and 50 T butter
@@ -125,6 +120,9 @@ class TestRecipes extends LambdaTest {
         assert(ingredientNames.contains("salt"))
         assert(ingredientNames.contains("eggs"))
         assert(!ingredientNames.contains("cream"))
+        assertEq(ingredientsAtHome,List(Warm(r.tomatoe.name,r.tomatoe.unit,10,DollarsCents(1)),
+        Warm(r.salt.name,r.salt.unit,100,DollarsCents(1)), Cold(r.butter.name,r.butter.unit,62,DollarsCents(2)), Cold(r.bacon.name,r.bacon.unit,27,DollarsCents(4)),
+        Cold(r.swiss.name,r.swiss.unit,18,DollarsCents(2)), Cold(r.egg.name,r.egg.unit,9,DollarsCents(3)), Warm(r.pepper.name,r.pepper.unit,100,DollarsCents(1))),"in my house")
       }
 }
 

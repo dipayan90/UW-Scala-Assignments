@@ -21,13 +21,37 @@ object RecipeClasses {
     val price: Cost
   }
 
-  case class Warm(name: String, unit: String, var pack: Int, price: Cost) extends Ingredient
+  case class Warm(name: String, unit: String, var pack: Int, price: Cost) extends Ingredient {
 
-  case class Cold(name: String, unit: String, var pack: Int, price: Cost) extends Ingredient
+    override def toString: String = {
+      val returnVal = new StringBuilder()
+      returnVal ++= " " ++= pack.toString ++= " " ++=unit ++= " " ++=  name
+      returnVal.toString()
+    }
+  }
+
+  case class Cold(name: String, unit: String, var pack: Int, price: Cost) extends Ingredient {
+    override def toString: String = {
+      val returnVal = new StringBuilder()
+      returnVal ++= " " ++= pack.toString ++= " " ++=unit ++= " " ++=  name
+      returnVal.toString()
+    }
+  }
 
   // Add the additional classes needed here
 
-  case class Action(name: String, ingredientList: List[Ingredient],time: Int = 0)
+  case class Action(name: String, ingredientList: List[Ingredient],time: Int = 0){
+
+    override def toString: String = {
+      val returnVal = new StringBuilder()
+      returnVal ++= name ++= " "
+      for(ing <- ingredientList){
+        returnVal ++= ing.pack.toString ++=  " " ++=ing.name ++= " "
+      }
+      returnVal ++= "for" ++= " " ++= time.toString ++= "minutes"
+      returnVal.toString()
+    }
+  }
 
   case class House() {
 
@@ -47,7 +71,7 @@ object RecipeClasses {
     }
 
     def checkContains(ingredient: Ingredient): Boolean = {
-      ingredientsAtHome.contains(ingredient)
+      ingredientsAtHome.map(_.name).contains(ingredient.name)
     }
 
     def remove(ingredient: Ingredient) : Unit = {
